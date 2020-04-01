@@ -40,29 +40,31 @@ function Game() {
     return false;
   };
 
-  // This hook is activated when colorsShown changes,
+  // This hook is activated when gameStarted changes,
   React.useEffect(() => {
-    console.info("-->gameStarted ", gameStarted);
     if (!gameStarted) {
       setRound(0);
     }
   }, [gameStarted]);
 
-
   // This hook is too long, I have to refactor.
-  // Another problem is that I know (txs to the linter) that the 
+  // Another problem is that I know (txs to the linter) that the
   // dependencies array is incomplete and I might suffer a situation where one of
-  // my state variable is out of sync -- but its unclear to me how to fix that 
+  // my state variable is out of sync -- but its unclear to me how to fix that
   // since hooks are very new to me, and I haven't seen that manifest.
   React.useEffect(() => {
     const isComputersTurn = !isUsersTurn();
-    console.info("-->round ", round);
 
-    const computerWon = (how) => {
-      console.log('COMPUTER WON ', how)
+    const computerWon = how => {
+      console.log("COMPUTER WON ", how);
       setWinningSpots(how);
       setGameStarted(false);
-    }
+    };
+
+    const tieGame = () => {
+      console.log("TIE GAME ");
+      setGameStarted(false);
+    };
 
     const updateBoard = (id, which = "x") => {
       if (boardData[id] === EMPTY_TOKEN) {
@@ -115,6 +117,8 @@ function Game() {
       }, playDelay);
     };
 
+    if (!gameStarted) return;
+
     if (round === 1 && isComputersTurn) {
       // computer going first
       chooseACorner();
@@ -146,7 +150,7 @@ function Game() {
       // User went first,
       // if user has an opportunity to win, have to block it
       const userWins = ttt.winPossibilities("o", boardData);
-      console.log("o win possibes ", userWins);
+
       if (userWins.length) {
         // If user has a winning move, block it
         computerTakeTurn("update", userWins[0]);
@@ -165,39 +169,39 @@ function Game() {
         }
       }
     } else if (round > 4) {
-      // TODO: check for tie
-
-      const wins = ttt.winCheck('x', boardData);
-      if ( wins.length ) {
-        console.log('The win(s) I found: ', wins);
+      const wins = ttt.winCheck("x", boardData);
+      if (wins.length) {
         computerWon(wins);
+        return;
       }
       const userWins = ttt.winCheck("o", boardData);
-      if ( userWins.length ) {
-        console.warn('WHAT? user won? ', userWins)
+      if (userWins.length) {
+        console.warn("WHAT? user won? ", userWins);
       }
 
+      if (boardData.indexOf(EMPTY_TOKEN) === -1) {
+        tieGame();
+        return;
+      }
     }
     if (round > 4 && isComputersTurn) {
       // If I have a win opportunity, take it!
       const wins = ttt.winPossibilities("x", boardData);
-      console.log("x win possibilities ", wins);
+
       if (wins.length) {
         computerTakeTurn("update", wins[randomNumber(wins.length)]);
         return;
       }
       // If user has a winning move, block it
       const userWins = ttt.winPossibilities("o", boardData);
-      console.log("o win possibes ", userWins);
+
       if (userWins.length) {
         computerTakeTurn("update", userWins[0]);
         return;
       }
 
-      console.log("hmm, where to go...");
       const whereAmI = allCornersWithOccupier("x");
       let possibilites = ttt.orthogonalOpenCorners(whereAmI[0], boardData);
-      console.log("your options ", possibilites);
 
       if (possibilites.length)
         computerTakeTurn(
@@ -218,7 +222,6 @@ function Game() {
   };
 
   const handleSquareSelection = id => {
-    // console.log(id);
     if (gameStarted && isUsersTurn()) {
       if (boardData[id] === EMPTY_TOKEN) {
         const newBoard = [...boardData];
