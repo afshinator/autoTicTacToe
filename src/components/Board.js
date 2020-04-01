@@ -20,9 +20,9 @@ function Board(props) {
 
   return (
     <StyledBoard>
-      {/* {boardData.map((sq, i) => (
+      {boardData.map((sq, i) => (
         <Square key={i} data-id={i} {...props} />
-      ))} */}
+      ))}
     </StyledBoard>
   );
 }

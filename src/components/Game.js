@@ -21,14 +21,50 @@ function Game() {
   const [round, setRound] = useState(0);
   const [boardData, setBoardData] = useState(EMPTY_BOARD);
 
-  const handleGameStarted = newState => {}
+  // Returns true if its the users turn to play
+  const isUsersTurn = () => {
+    if (gameStarted === "computer") {
+      return !(round % 2);
+    } else if (gameStarted === "user") {
+      return round % 2;
+    }
+    return false;
+  };
+
+  const handleGameStarted = newState => {
+    if (newState !== false) {
+      setBoardData(EMPTY_BOARD);
+      setRound(1);
+    }
+    setGameStarted(newState);
+  };
+
   const handleSquareSelection = id => {
+    if (gameStarted && isUsersTurn()) {
+      if (boardData[id] === EMPTY_TOKEN) {
+        const newBoard = [...boardData];
+        if (gameStarted === "computer") {
+          newBoard[id] = round % 2 ? "x" : "o";
+        } else {
+          newBoard[id] = !(round % 2) ? "x" : "o";
+        }
+        setBoardData(newBoard);
+        setRound(round + 1);
+      } else {
+        console.info("Trying to play an occupied square.");
+      }
+    }
   };
   
   return (
     <StyledGame>
       <Header gameStarted={gameStarted} setGameStarted={handleGameStarted} />
-      { /* <Board /> */}
+      <Board
+        gameStarted={gameStarted}
+        setGameStarted={setGameStarted}
+        boardData={boardData}
+        handleSquareSelection={handleSquareSelection}
+      />
     </StyledGame>
   );
 }
