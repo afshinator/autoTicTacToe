@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import Header from "./Header";
+import Board from "./Board";
 
 const StyledGame = styled.div`
   border-radius: 5px;
@@ -10,13 +12,23 @@ const StyledGame = styled.div`
   width: 100vw;
 `;
 
+export const EMPTY_TOKEN = "_"; // is token the right word?
+const EMPTY_BOARD = Array(9).fill(EMPTY_TOKEN);
 
 // Game is the container for Tic Tac Toe Game
 function Game() {
+  const [gameStarted, setGameStarted] = useState(false);
+  const [round, setRound] = useState(0);
+  const [boardData, setBoardData] = useState(EMPTY_BOARD);
+
+  const handleGameStarted = newState => {}
+  const handleSquareSelection = id => {
+  };
+  
   return (
     <StyledGame>
-      {/* <Header />
-      <Board /> */}
+      <Header gameStarted={gameStarted} setGameStarted={handleGameStarted} />
+      { /* <Board /> */}
     </StyledGame>
   );
 }
