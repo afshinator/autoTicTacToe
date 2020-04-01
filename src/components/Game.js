@@ -28,6 +28,7 @@ function Game() {
   const [gameStarted, setGameStarted] = useState(false);
   const [round, setRound] = useState(0);
   const [boardData, setBoardData] = useState(EMPTY_BOARD);
+  const [winningSpots, setWinningSpots] = useState();
 
   // Returns true if its the users turn to play
   const isUsersTurn = () => {
@@ -47,12 +48,19 @@ function Game() {
     }
   }, [gameStarted]);
 
+
+  // This hook is too long, I have to refactor.
+  // Another problem is that I know (txs to the linter) that the 
+  // dependencies array is incomplete and I might suffer a situation where one of
+  // my state variable is out of sync -- but its unclear to me how to fix that 
+  // since hooks are very new to me, and I haven't seen that manifest.
   React.useEffect(() => {
     const isComputersTurn = !isUsersTurn();
     console.info("-->round ", round);
 
     const computerWon = (how) => {
       console.log('COMPUTER WON ', how)
+      setWinningSpots(how);
       setGameStarted(false);
     }
 
@@ -200,12 +208,13 @@ function Game() {
     }
   }, [round]);
 
-  const handleGameStarted = newState => {
-    if (newState !== false) {
+  const handleGameStarted = whoIsFirst => {
+    if (whoIsFirst !== false) {
+      setWinningSpots(false);
       setBoardData(EMPTY_BOARD);
       setRound(1);
     }
-    setGameStarted(newState);
+    setGameStarted(whoIsFirst);
   };
 
   const handleSquareSelection = id => {
@@ -237,6 +246,7 @@ function Game() {
         setGameStarted={setGameStarted}
         boardData={boardData}
         handleSquareSelection={handleSquareSelection}
+        winningSpots={winningSpots}
       />
     </StyledGame>
   );

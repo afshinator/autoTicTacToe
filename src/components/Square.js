@@ -9,12 +9,12 @@ const whichColor = props => {
 };
 
 const StyledSquare = styled.div`
-  width: 32%; // TODO
+  width: 32%;
   height: 32%;
   display: flex;
   align-items: center;
   justify-content: center;
-
+  background: ${props => (props.highlight ? COLORS.bkgdWon : "none")};
   transition: background-color 0.2s ease;
   &:hover {
     background-color: ${COLORS.sqrSelect};
@@ -41,9 +41,9 @@ const StyledSquare = styled.div`
 const StyledGamePiece = styled.span`
   font-size: 6em;
 
-  /* TODO: There is an intermittent bug that shows up upon first loading
-    the page in chrome: the first box selected seems to cause a jump in the
-    page.  It has to do with this dynamic updating of the color in css.
+  /* TODO: There is an intermittent bug that shows up in Chrome:
+    the first box selected seems to cause a jump in the page.  It has to do with 
+    this dynamic updating of the color in css and styled-components.
     Firefox does not have this issue.
   */
   color: ${whichColor};
@@ -87,14 +87,18 @@ const StyledGamePiece = styled.span`
 // A Sqaure is a position that a player can choose to occupy in ttt;
 // There will be 9 of them in a ttt game.
 function Square(props) {
-  const { boardData, handleSquareSelection } = props;
+  const { boardData, handleSquareSelection, gameStarted, winningSpots } = props;
   const id = props["data-id"];
   const isX = boardData[id] === "x";
   const isO = boardData[id] === "o";
 
+  const highlight =
+    !gameStarted && winningSpots && winningSpots.indexOf(id) !== -1;
+
   return (
     <StyledSquare
       data-id={id}
+      highlight={highlight}
       onClick={e => {
         if (boardData[id] !== "_") {
           console.log("occupied!");
@@ -106,7 +110,7 @@ function Square(props) {
       {isO ? (
         <StyledGamePiece
           className="shadow-drop-2-center"
-          whatAmI={boardData[id]}  // this prop is for whichColor()
+          whatAmI={boardData[id]} // this prop is for whichColor()
         >
           O
         </StyledGamePiece>
