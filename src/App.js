@@ -1,27 +1,23 @@
-import React from 'react';
-import logo from './logo.svg';
-// import { createGlobalStyle } from "styled-components";
-import './App.css';
+import React from "react";
+import { createGlobalStyle } from "styled-components";
+import COLORS from "./utils/colors";
+import "./App.css";
+
+// Add global styles
+// See: https://styled-components.com/docs/api#createglobalstyle
+const GlobalStyle = createGlobalStyle`
+  body {
+    background: ${COLORS.bkgd};
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    user-select: none;
+  }
+`;
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+  return <div className="App"></div>;
 }
 
 export default App;
