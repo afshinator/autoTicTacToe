@@ -27,10 +27,10 @@ const EMPTY_BOARD = Array(9).fill(EMPTY_TOKEN);
 // Game is the container for Tic Tac Toe Game
 // All the logic for the game is here.
 function Game() {
-  const [gameStarted, setGameStarted] = useState(false);  // Will hold who starts first too
-  const [round, setRound] = useState(0);                  // Round in the game
+  const [gameStarted, setGameStarted] = useState(false); // Will hold who starts first too
+  const [round, setRound] = useState(0); // Round in the game
   const [boardData, setBoardData] = useState(EMPTY_BOARD);
-  const [winningSpots, setWinningSpots] = useState();     // Once someone wins, will hold the winning spots
+  const [winningSpots, setWinningSpots] = useState(); // Once someone wins, will hold the winning spots
 
   // Returns true if its the users turn to play
   const isUsersTurn = () => {
@@ -44,9 +44,10 @@ function Game() {
 
   // This hook is activated when gameStarted changes,
   React.useEffect(() => {
-    if (!gameStarted) { setRound(0); }  // If game is finished, reset round
+    if (!gameStarted) {
+      setRound(0);
+    } // If game is finished, reset round
   }, [gameStarted]);
-
 
   // This hook holds essentially all of the game logic, and its too long!
   // Another problem is that I know (thanks to the linter) that the
@@ -56,10 +57,14 @@ function Game() {
   React.useEffect(() => {
     const isComputersTurn = !isUsersTurn();
 
-    const computerWon = how => {
-      console.log("COMPUTER WON ", how);
-      setWinningSpots(how);
+    const someoneWon = (who, how) => {
+      if (who === "x") {
+        console.log("COMPUTER WON :", how);
+      } else {
+        console.log("USER WON!!! ", how);
+      }
       setGameStarted(false);
+      setWinningSpots(how);
     };
 
     const tieGame = () => {
@@ -73,26 +78,38 @@ function Game() {
         newBoard[id] = which;
         setBoardData(newBoard);
       } else {
-        console.warn("uh oh, updateBoard is trying to set an occupied spot! ", id, which);
+        console.warn(
+          "uh oh, updateBoard is trying to set an occupied spot! ",
+          id,
+          which
+        );
       }
     };
 
     const chooseCenter = () => {
-      updateBoard(4, "x");    // 0 based index, 9 spots so 4 is center
+      updateBoard(4, "x"); // 0 based index, 9 spots so 4 is center
     };
 
     const chooseACorner = () => {
-      const availableCorners = allCornersWithOccupier(EMPTY_TOKEN);
+      const availableCorners = allSpotTypesWithOccupier('corners', EMPTY_TOKEN);
       const id = availableCorners[randomNumber(availableCorners.length)];
       updateBoard(id, "x");
     };
 
-    const allCornersWithOccupier = occupier => {
+    const chooseAnEdge = () => {
+      const availableEdges = allSpotTypesWithOccupier('edges', EMPTY_TOKEN);
+      const id = availableEdges[randomNumber(availableEdges.length)];
+      updateBoard(id, "x");
+    };
+
+    const allSpotTypesWithOccupier = (type, occupier) => {
       // occupier could be x, o, or empty
       const allCorners = [0, 2, 6, 8];
+      const allEdges = [1, 3, 5, 7];
       const allMatches = [];
-      allCorners.forEach(i => {
-        // look for and save available corners
+      const spotType = type === 'corners' ? allCorners : allEdges;
+      spotType.forEach( i => {
+        // look for and save available spots of type given
         if (boardData[i] === occupier) allMatches.push(i);
       });
       return allMatches;
@@ -109,6 +126,9 @@ function Game() {
             break;
           case "center":
             chooseCenter();
+            break;
+          case "edge":
+            chooseAnEdge();
             break;
           default:
             console.warn("whoops, computerTakeTurn called with ", whatToDo);
@@ -148,20 +168,20 @@ function Game() {
         );
       }
     } else if (round === 4 && isComputersTurn) {
-      // User went first,
-      // if user has an opportunity to win, have to block it
+      // User went first
       const userWins = ttt.winPossibilities("o", boardData);
-
       if (userWins.length) {
         // If user has a winning move, block it
         computerTakeTurn("update", userWins[0]);
       } else {
         if (boardData[4] === "x") {
-          // If I started off in center...
-          computerTakeTurn("corner");
+          // If computer started off in center...
+  console.info("round = 4, computers turn");
+  // computerTakeTurn("corner");
+          computerTakeTurn("edge");
         } else {
           // I wasn't in center, I must be in a corner
-          const whereAmI = allCornersWithOccupier("x");
+          const whereAmI = allSpotTypesWithOccupier('corners', "x");
           let possibilites = ttt.orthogonalOpenCorners(whereAmI[0], boardData);
           computerTakeTurn(
             "update",
@@ -172,12 +192,14 @@ function Game() {
     } else if (round > 4) {
       const wins = ttt.winCheck("x", boardData);
       if (wins.length) {
-        computerWon(wins);
+        someoneWon("x", wins);
         return;
       }
       const userWins = ttt.winCheck("o", boardData);
       if (userWins.length) {
         console.warn("WHAT? user won? ", userWins);
+        someoneWon("o", userWins);
+        return;
       }
 
       if (boardData.indexOf(EMPTY_TOKEN) === -1) {
@@ -201,7 +223,7 @@ function Game() {
         return;
       }
 
-      const whereAmI = allCornersWithOccupier("x");
+      const whereAmI = allSpotTypesWithOccupier("corners", "x");
       let possibilites = ttt.orthogonalOpenCorners(whereAmI[0], boardData);
 
       if (possibilites.length)

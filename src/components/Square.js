@@ -9,7 +9,7 @@ const whichColor = props => {
 };
 
 const StyledSquare = styled.div`
-  width: 32%;
+  width: 31%;
   height: 32%;
   display: flex;
   align-items: center;
