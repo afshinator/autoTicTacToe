@@ -176,8 +176,6 @@ function Game() {
       } else {
         if (boardData[4] === "x") {
           // If computer started off in center...
-  console.info("round = 4, computers turn");
-  // computerTakeTurn("corner");
           computerTakeTurn("edge");
         } else {
           // I wasn't in center, I must be in a corner
