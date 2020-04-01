@@ -5,9 +5,10 @@ import Board from "./Board";
 import ttt from "../utils/ttt";
 import { EMPTY_TOKEN } from "../utils/ttt";
 
-const playDelay = 1000;
+const playDelay = 1000; // Pause for when the computer makes her move
 
-// return random-ish digit between 0 and max
+// Return random-ish digit between 0 and max, used when there's a
+// variety of places computer can move to.
 const randomNumber = max => {
   return Math.trunc(Math.random() * 10000) % max;
 };
@@ -24,11 +25,12 @@ const StyledGame = styled.div`
 const EMPTY_BOARD = Array(9).fill(EMPTY_TOKEN);
 
 // Game is the container for Tic Tac Toe Game
+// All the logic for the game is here.
 function Game() {
-  const [gameStarted, setGameStarted] = useState(false);
-  const [round, setRound] = useState(0);
+  const [gameStarted, setGameStarted] = useState(false);  // Will hold who starts first too
+  const [round, setRound] = useState(0);                  // Round in the game
   const [boardData, setBoardData] = useState(EMPTY_BOARD);
-  const [winningSpots, setWinningSpots] = useState();
+  const [winningSpots, setWinningSpots] = useState();     // Once someone wins, will hold the winning spots
 
   // Returns true if its the users turn to play
   const isUsersTurn = () => {
@@ -37,21 +39,20 @@ function Game() {
     } else if (gameStarted === "user") {
       return round % 2;
     }
-    return false;
+    return;
   };
 
   // This hook is activated when gameStarted changes,
   React.useEffect(() => {
-    if (!gameStarted) {
-      setRound(0);
-    }
+    if (!gameStarted) { setRound(0); }  // If game is finished, reset round
   }, [gameStarted]);
 
-  // This hook is too long, I have to refactor.
-  // Another problem is that I know (txs to the linter) that the
-  // dependencies array is incomplete and I might suffer a situation where one of
+
+  // This hook holds essentially all of the game logic, and its too long!
+  // Another problem is that I know (thanks to the linter) that the
+  // dependencies array is incomplete, and I might get a situation where one of
   // my state variable is out of sync -- but its unclear to me how to fix that
-  // since hooks are very new to me, and I haven't seen that manifest.
+  // since hooks are very new to me, and I haven't seen the problem manifest.
   React.useEffect(() => {
     const isComputersTurn = !isUsersTurn();
 
@@ -72,12 +73,18 @@ function Game() {
         newBoard[id] = which;
         setBoardData(newBoard);
       } else {
-        console.warn("hmm, updateBoard ", id, which);
+        console.warn("uh oh, updateBoard is trying to set an occupied spot! ", id, which);
       }
     };
 
     const chooseCenter = () => {
-      updateBoard(4, "x");
+      updateBoard(4, "x");    // 0 based index, 9 spots so 4 is center
+    };
+
+    const chooseACorner = () => {
+      const availableCorners = allCornersWithOccupier(EMPTY_TOKEN);
+      const id = availableCorners[randomNumber(availableCorners.length)];
+      updateBoard(id, "x");
     };
 
     const allCornersWithOccupier = occupier => {
@@ -89,12 +96,6 @@ function Game() {
         if (boardData[i] === occupier) allMatches.push(i);
       });
       return allMatches;
-    };
-
-    const chooseACorner = () => {
-      const availableCorners = allCornersWithOccupier(EMPTY_TOKEN);
-      const id = availableCorners[randomNumber(availableCorners.length)];
-      updateBoard(id, "x");
     };
 
     const computerTakeTurn = (whatToDo, updateArg) => {
@@ -110,14 +111,14 @@ function Game() {
             chooseCenter();
             break;
           default:
-            console.warn("computerTakeTurn called with ", whatToDo);
+            console.warn("whoops, computerTakeTurn called with ", whatToDo);
             return;
         }
         setRound(round + 1);
       }, playDelay);
     };
 
-    if (!gameStarted) return;
+    // if (!gameStarted) return;
 
     if (round === 1 && isComputersTurn) {
       // computer going first
