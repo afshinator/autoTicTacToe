@@ -235,9 +235,6 @@ function Game() {
     }
   };
 
-  // boardData[8]='x'  // debug data
-  // boardData[1]='o'
-
   return (
     <StyledGame>
       <Header gameStarted={gameStarted} setGameStarted={handleGameStarted} />

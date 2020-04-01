@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import Button from "./Button";
+// eslint-disable-next-line no-unused-vars
 import COLORS from "../utils/colors";
 
 const ButtonRow = styled.div`
