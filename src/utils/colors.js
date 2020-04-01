@@ -6,7 +6,8 @@ const COLORS = {
   btnText: "#0d0d0d",
   board: '#888',
   sqrSelect: '#eff0ff',
-
+  xPiece: '#710000',
+  oPiece: '#124e78',
 };
 
 export default COLORS;

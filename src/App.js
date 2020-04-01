@@ -23,7 +23,7 @@ body {
 
 /* In the pursuit of co-location, I like this top level component
   to be free of things that don't otherwise need to be here.
-  In the future stuff like redux, context bindings, ... can go here.
+  In the future stuff like redux, context bindings, etc... can go here.
   */
 function App() {
   return (
