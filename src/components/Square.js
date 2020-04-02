@@ -17,7 +17,7 @@ const StyledSquare = styled.div`
   background: ${props => (props.highlight ? COLORS.bkgdWon : "none")};
   transition: background-color 0.2s ease;
   &:hover {
-    background-color: ${COLORS.sqrSelect};
+    background-color: ${props => (props.highlight ? "none" : COLORS.sqrSelect)};
   }
 
   // TTT board looks like a big hash mark; lets implement w/ css on
@@ -42,15 +42,13 @@ const StyledGamePiece = styled.span`
   font-size: 6em;
 
   /* TODO: There is an intermittent bug that shows up in Chrome:
-    the first box selected seems to cause a jump in the page.  It has to do with 
-    this dynamic updating of the color in css and styled-components.
+     Sometimes the page jumps after you select a square. Not exactly sure what
+     is happening, I think it has to do with styled components,
     Firefox does not have this issue.
   */
   color: ${whichColor};
 
-  /* rotate-scale-up animation css courtesy of 
-      https://animista.net/
-  */
+  /* rotate-scale-up animation css courtesy of  https://animista.net/ */
   -webkit-animation: rotate-scale-up 0.25s linear both;
   animation: rotate-scale-up 0.25s linear both;
 
@@ -109,19 +107,13 @@ function Square(props) {
     >
       {isO ? (
         <StyledGamePiece
-          className="shadow-drop-2-center"
           whatAmI={boardData[id]} // this prop is for whichColor()
         >
           O
         </StyledGamePiece>
       ) : null}
       {isX ? (
-        <StyledGamePiece
-          className="shadow-drop-2-center"
-          whatAmI={boardData[id]}
-        >
-          X
-        </StyledGamePiece>
+        <StyledGamePiece whatAmI={boardData[id]}>X</StyledGamePiece>
       ) : null}
     </StyledSquare>
   );
