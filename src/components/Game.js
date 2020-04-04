@@ -1,15 +1,16 @@
-import React, { useState } from "react";
+import React, { useReducer } from "react";
 import styled from "styled-components";
 import Header from "./Header";
 import Board from "./Board";
 import ttt from "../utils/ttt";
-import { EMPTY_TOKEN } from "../utils/ttt";
+import reducer from "../utils/stateReducer";
+import { EMPTY_TOKEN, EMPTY_BOARD, isUsersTurn } from "../utils/ttt";
 
 const playDelay = 1000; // Pause for when the computer makes her move
 
 // Return random-ish digit between 0 and max, used when there's a
 // variety of places computer can move to.
-const randomNumber = max => {
+const randomNumber = (max) => {
   return Math.trunc(Math.random() * 10000) % max;
 };
 
@@ -22,40 +23,28 @@ const StyledGame = styled.div`
   width: 100vw;
 `;
 
-const EMPTY_BOARD = Array(9).fill(EMPTY_TOKEN);
+const initialState = {
+  gameStarted: false,
+  round: 0,
+  boardData: EMPTY_BOARD,
+  winningSpots: null,
+};
+
 
 // Game is the container for Tic Tac Toe Game
 // All the logic for the game is here.
 function Game() {
-  const [gameStarted, setGameStarted] = useState(false); // Will hold who starts first too
-  const [round, setRound] = useState(0); // Round in the game
-  const [boardData, setBoardData] = useState(EMPTY_BOARD);
-  const [winningSpots, setWinningSpots] = useState(); // Once someone wins, will hold the winning spots
+  const [state, dispatch] = useReducer(reducer, initialState);
 
-  // Returns true if its the users turn to play
-  const isUsersTurn = () => {
-    if (gameStarted === "computer") {
-      return !(round % 2);
-    } else if (gameStarted === "user") {
-      return round % 2;
-    }
-    return;
-  };
-
-  // This hook is activated when gameStarted changes,
   React.useEffect(() => {
-    if (!gameStarted) {
-      setRound(0);
+    if (!state.gameStarted) {
+      dispatch({ type: "gameOver" });
     } // If game is finished, reset round
-  }, [gameStarted]);
+  }, [state.gameStarted]);
 
-  // This hook holds essentially all of the game logic, and its too long!
-  // Another problem is that I know (thanks to the linter) that the
-  // dependencies array is incomplete, and I might get a situation where one of
-  // my state variable is out of sync -- but its unclear to me how to fix that
-  // since hooks are very new to me, and I haven't seen the problem manifest.
+  // TODO: This hook is too long!
   React.useEffect(() => {
-    const isComputersTurn = !isUsersTurn();
+    const { round, boardData, gameStarted } = state;
 
     const someoneWon = (who, how) => {
       if (who === "x") {
@@ -63,27 +52,16 @@ function Game() {
       } else {
         console.log("USER WON!!! ", how);
       }
-      setGameStarted(false);
-      setWinningSpots(how);
+      dispatch({ type: "someoneWon" , data: how });
     };
 
     const tieGame = () => {
       console.log("TIE GAME ");
-      setGameStarted(false);
+      dispatch({ type: "tieGame" });
     };
 
     const updateBoard = (id, which = "x") => {
-      if (boardData[id] === EMPTY_TOKEN) {
-        const newBoard = [...boardData];
-        newBoard[id] = which;
-        setBoardData(newBoard);
-      } else {
-        console.warn(
-          "uh oh, updateBoard is trying to set an occupied spot! ",
-          id,
-          which
-        );
-      }
+      dispatch({ type: "updateBoard", data: { id, which } });
     };
 
     const chooseCenter = () => {
@@ -91,13 +69,13 @@ function Game() {
     };
 
     const chooseACorner = () => {
-      const availableCorners = allSpotTypesWithOccupier('corners', EMPTY_TOKEN);
+      const availableCorners = allSpotTypesWithOccupier("corners", EMPTY_TOKEN);
       const id = availableCorners[randomNumber(availableCorners.length)];
       updateBoard(id, "x");
     };
 
     const chooseAnEdge = () => {
-      const availableEdges = allSpotTypesWithOccupier('edges', EMPTY_TOKEN);
+      const availableEdges = allSpotTypesWithOccupier("edges", EMPTY_TOKEN);
       const id = availableEdges[randomNumber(availableEdges.length)];
       updateBoard(id, "x");
     };
@@ -107,14 +85,15 @@ function Game() {
       const allCorners = [0, 2, 6, 8];
       const allEdges = [1, 3, 5, 7];
       const allMatches = [];
-      const spotType = type === 'corners' ? allCorners : allEdges;
-      spotType.forEach( i => {
+      const spotType = type === "corners" ? allCorners : allEdges;
+      spotType.forEach((i) => {
         // look for and save available spots of type given
         if (boardData[i] === occupier) allMatches.push(i);
       });
       return allMatches;
     };
 
+    const isComputersTurn = !isUsersTurn(gameStarted, round);
     const computerTakeTurn = (whatToDo, updateArg) => {
       setTimeout(() => {
         switch (whatToDo) {
@@ -134,16 +113,14 @@ function Game() {
             console.warn("whoops, computerTakeTurn called with ", whatToDo);
             return;
         }
-        setRound(round + 1);
+        dispatch({ type: "nextRound" }); // setRound(round + 1);
       }, playDelay);
     };
-
-    // if (!gameStarted) return;
 
     if (round === 1 && isComputersTurn) {
       // computer going first
       chooseACorner();
-      setRound(round + 1);
+      dispatch({ type: "nextRound" });
     } else if (round === 2 && isComputersTurn) {
       // user went first
       const i = boardData.indexOf("o");
@@ -179,7 +156,7 @@ function Game() {
           computerTakeTurn("edge");
         } else {
           // I wasn't in center, I must be in a corner
-          const whereAmI = allSpotTypesWithOccupier('corners', "x");
+          const whereAmI = allSpotTypesWithOccupier("corners", "x");
           let possibilites = ttt.orthogonalOpenCorners(whereAmI[0], boardData);
           computerTakeTurn(
             "update",
@@ -231,40 +208,24 @@ function Game() {
         );
       else computerTakeTurn("corner");
     }
-  }, [round]);
+  }, [state.round]);
 
-  const handleGameStarted = whoIsFirst => {
-    if (whoIsFirst !== false) {
-      setWinningSpots(false);
-      setBoardData(EMPTY_BOARD);
-      setRound(1);
-    }
-    setGameStarted(whoIsFirst);
+  const handleGameStarted = (whoIsFirst) => {
+    if (whoIsFirst) {
+      dispatch({ type: "gameStarted", data: { whoIsFirst } });
+    } else dispatch({ type: "gameOver" });
   };
 
-  const handleSquareSelection = id => {
-    if (gameStarted && isUsersTurn()) {
-      if (boardData[id] === EMPTY_TOKEN) {
-        const newBoard = [...boardData];
-        if (gameStarted === "computer") {
-          newBoard[id] = round % 2 ? "x" : "o";
-        } else {
-          newBoard[id] = !(round % 2) ? "x" : "o";
-        }
-        setBoardData(newBoard);
-        setRound(round + 1);
-      } else {
-        console.info("Trying to play an occupied square.");
-      }
-    }
+  const handleSquareSelection = (id) => {
+    if (state.gameStarted) dispatch({ type: "squareSelection", data: { id } });
   };
 
+  const { gameStarted, boardData, winningSpots } = state;
   return (
     <StyledGame>
       <Header gameStarted={gameStarted} setGameStarted={handleGameStarted} />
       <Board
         gameStarted={gameStarted}
-        setGameStarted={setGameStarted}
         boardData={boardData}
         handleSquareSelection={handleSquareSelection}
         winningSpots={winningSpots}

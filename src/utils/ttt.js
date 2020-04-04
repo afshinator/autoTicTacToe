@@ -1,6 +1,16 @@
 // A bunch of helper functions for tic tac toe logic
 
 export const EMPTY_TOKEN = "_"; // is token the right word?
+export const EMPTY_BOARD = Array(9).fill(EMPTY_TOKEN);
+
+export const isUsersTurn = (gameStarted, round) => {
+  if (gameStarted === "computer") {
+    return !(round % 2);
+  } else if (gameStarted === "user") {
+    return round % 2;
+  }
+  return;
+};
 
 // All the combinations that can win a game, indexed by board position
 const winningCombinations = [
